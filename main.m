@@ -1,3 +1,4 @@
+
 %% Boeing 747 open-loop nonlinear 6DOF simulation
 % The aerodynamic coefficients below are reconstructed so the local
 % linearization at the lecture trim condition reproduces the ASEN 3728
@@ -12,23 +13,20 @@ close all;
 ft_to_m = 0.3048;
 slug_to_kg = 14.59390294;
 slug_ft2_to_kg_m2 = slug_to_kg*ft_to_m^2;
+lbf_to_N = 4.448221615;
 
 g = 9.81; % m/s^2
 
 %% ===== VALIDATION CASE DATA =============================================
 % Using Case II - Appendix E
-alt = 200000 * ft_to_m; % 20,000 ft
-V = 518 * ft_to_m; % 518 ft/s
+alt = 20000 * ft_to_m; % 20,000 ft
+V_trim = 518 * ft_to_m; % 518 ft/s
 rho = 0.65314; % kg/m^3 at 20,000ft
-%% Unit conversions and reference flight condition
-ft_to_m = 0.3048;
-slug_to_kg = 14.59390294;
-slug_ft2_to_kg_m2 = slug_to_kg*ft_to_m^2;
 
-g = 32.2*ft_to_m;                 % m/s^2; matches the lecture matrices
-altitude_trim = 40000*ft_to_m;    % m
-V_trim = 774*ft_to_m;             % m/s
-rho = 0.000585*slug_to_kg/ft_to_m^3; % kg/m^3 at 40,000 ft
+% Case II trim orientation
+xi_trim = deg2rad(-6.8);
+alpha_trim = -xi_trim;
+theta_trim = alpha_trim; % Level flight
 
 %% %% ===== BOEING 747 REFERENCE GEOMETRY/MASS PROPERTIES =================
 % Data from Appendix E
@@ -41,6 +39,7 @@ mass = (weight_lbf/32.2)*slug_to_kg;
 S = 5500*ft_to_m^2;
 b = 195.68*ft_to_m;
 cbar = 27.31*ft_to_m;
+AR = b^2 / S;
 
 % Inertia Matrix
 Ixx = 18.2e6*slug_ft2_to_kg_m2;
@@ -69,8 +68,71 @@ A_lat_english = [
      1.342e5,   3.073e6,  -1.958e7
 ];
 
-T_lon = diag([ft_to_m ft_to_m 1 1]);
-T_lat = diag([ft_to_m 1 1 1]);
-A_lon_SI = T_lon*A_lon_english/T_lon;
-A_lat_SI = T_lat*A_lat_english/T_lat;
+% Conversion factors for input variables
+lon_inputs = [ft_to_m ft_to_m 1 ft_to_m 1];
+lat_inputs = [ft_to_m 1 1 1 1];
+
+% Conversion factors for output forces and moments
+outputs = [lbf_to_N lbf_to_N lbf_to_N*ft_to_m];
+
+% Convert English derivatives to SI
+A_lon_SI = diag(1./lon_inputs)*A_lon_english*diag(outputs);
+A_lat_SI = diag(1./lat_inputs)*A_lat_english*diag(outputs);
+
+%% ===== INITIAL CONDITIONS ===============================================
+
+% setting initial state vector
+pos0 = [0 0 -alt]; % Position vector (N E D), m
+vel0 = [V_trim*cos(alpha_trim) 0 V_trim*sin(alpha_trim)]; % (u v w), m/s
+euler0 = [0 theta_trim 0]; % Euler angles (phi theta psi), rad
+omega0 = [0 0 0]; % [p q r], rad/s
+
+%% ===== AERO COEFFICIENTS ================================================
+
+% Find q and CL
+qbar = 0.5 * rho * V_trim^2;
+L = mass * g;
+
+% Drag coefficients
+CD_trim = 0.040; % appendix e (case 2)
+
+% LIFT coefficients
+CL_trim = L/(qbar*S) - CD_trim*tan(alpha_trim);
+
+% -- FINDING CL_ALPHA --
+
+% Lift stability derivative from Appendix E, Table E.3
+
+% Convert force derivatives to SI units
+lbf_to_N = 4.448221615;
+
+% Extract dimensional force derivatives (SI)
+Xu = A_lon_SI(1,1);
+Xw = A_lon_SI(2,1);
+Zu = A_lon_SI(1,2);
+Zw = A_lon_SI(2,2);
+
+% Force derivatives with respect to alpha at constant airspeed
+X_alpha = -vel0(3)*Xu + vel0(1)*Xw;
+Z_alpha = -vel0(3)*Zu + vel0(1)*Zw;
+
+% Lift-curve slope (1/rad)
+CL_alpha = (sin(alpha_trim)*X_alpha - ...
+    cos(alpha_trim)*Z_alpha)/(qbar*S) - CD_trim;
+
+% Final Lift Coefficient
+alpha = atan2(vel0(3), vel0(1));
+CL = CL_trim + CL_alpha*(alpha - alpha_trim);
+
+
+%% ====== DIMENSIONAL DERIVATIVES =========================================
+% Longitudinal perts
+d_lon = [du; dw; q; wdot; delta_e];
+
+% Lateral perts
+d_lat = [dv; p; r; delta_a; delta_r];
+
+% Forces/ moments
+dF_lon = A_lon_SI.' * d_lon; % [dX; dZ; dM]
+dF_lat = A_lat_SI.' * d_lat; % [dY; dL; dN]
 
