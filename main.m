@@ -136,7 +136,7 @@ D_trim = qbar * S * CD_trim;
 
 F = [ -D_trim * cos(alpha_trim) + L_trim * sin(alpha_trim)
     0
-    -D_trim * sin(alpha_trim) + L_trim * cos(alpha_trim)];
+    -D_trim * sin(alpha_trim) - L_trim * cos(alpha_trim)];
 
 % Simplified thrust through CG, aligned with body X
 T_trim = D_trim/cos(alpha_trim);
