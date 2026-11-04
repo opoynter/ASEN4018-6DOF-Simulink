@@ -134,7 +134,7 @@ d_lon = zeros(5,1);
 L_trim = qbar * S * CL_trim;
 D_trim = qbar * S * CD_trim;
 
-F = [ -D_trim * cos(alpha_trim) + L_trim * sin(alpha_trim)
+F_aero_trim = [ -D_trim * cos(alpha_trim) + L_trim * sin(alpha_trim)
     0
     -D_trim * sin(alpha_trim) - L_trim * cos(alpha_trim)];
 
@@ -144,3 +144,23 @@ T_body_trim = [T_trim; 0; 0];
 
 M_aero_trim = [0; 0; 0];
 M_thrust_trim = [0; 0; 0];
+
+%% ===== VERIFY TRIM EQUILIBRIUM ===========================================
+
+% Gravity in body axes
+F_gravity_trim = mass*g * [
+    -sin(theta_trim);
+     0;
+     cos(theta_trim)
+];
+
+% Total forces and moments
+F_total_trim = F_aero_trim + T_body_trim + F_gravity_trim;
+M_total_trim = M_aero_trim + M_thrust_trim;
+
+% Display results
+disp('Total Forces at Trim (N):');
+disp(F_total_trim);
+
+disp('Total Moments at Trim (N*m):');
+disp(M_total_trim);
