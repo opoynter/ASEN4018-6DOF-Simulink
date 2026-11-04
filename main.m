@@ -145,6 +145,17 @@ T_body_trim = [T_trim; 0; 0];
 M_aero_trim = [0; 0; 0];
 M_thrust_trim = [0; 0; 0];
 
+%% ===== PROPULSION (linear throttle) =========================
+% T_max: 4x JT9D-3 maximum thrust at Case II (20,000 ft, M ~0.50).
+% Thrust data taken from NASA CR-114494 Vol. II p.12.2-4: Fn/delta 41,000 lbf at max EPR, M 0.5
+% delta @ 20,000 ft = 0.4599  leading to 19,000 lbf per engine (rough estimate from graph reading)
+n_eng     = 4;
+T_max_eng = 19000*lbf_to_N;
+T_max     = n_eng*T_max_eng; % N total around 338 kN
+
+% Throttle setting that gives the trim thrust (using linear model)
+throttle_trim = T_trim/T_max;        % ~0.50
+
 %% ===== VERIFY TRIM EQUILIBRIUM ===========================================
 
 % Gravity in body axes
