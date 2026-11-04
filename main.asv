@@ -126,4 +126,13 @@ CL = CL_trim + CL_alpha*(alpha - alpha_trim);
 
 
 %% ====== DIMENSIONAL DERIVATIVES =========================================
-dX = [du; dw; q; wdot; de];
+% Longitudinal perts
+d_lon = [0;0;0;0]; % initial condition long
+
+% Lateral perts
+d_lat = [0;0;0;0]; % initial condition lat
+
+% Forces/ moments
+dF_lon = A_lon_SI.' * d_lon; % [dX; dZ; dM]
+dF_lat = A_lat_SI.' * d_lat; % [dY; dL; dN]
+

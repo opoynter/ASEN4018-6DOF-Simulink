@@ -126,13 +126,21 @@ CL = CL_trim + CL_alpha*(alpha - alpha_trim);
 
 
 %% ====== DIMENSIONAL DERIVATIVES =========================================
-% Longitudinal perts
-d_lon = [du; dw; q; wdot; delta_e];
 
-% Lateral perts
-d_lat = [dv; p; r; delta_a; delta_r];
+% initial conditions
+d_lat = zeros(5,1);
+d_lon = zeros(5,1);
 
-% Forces/ moments
-dF_lon = A_lon_SI.' * d_lon; % [dX; dZ; dM]
-dF_lat = A_lat_SI.' * d_lat; % [dY; dL; dN]
+L_trim = qbar * S * CL_trim;
+D_trim = qbar * S * CD_trim;
 
+F = [ -D_trim * cos(alpha_trim) + L_trim * sin(alpha_trim)
+    0
+    -D_trim * sin(alpha_trim) + L_trim * cos(alpha_trim)];
+
+% Simplified thrust through CG, aligned with body X
+T_trim = D_trim/cos(alpha_trim);
+T_body_trim = [T_trim; 0; 0];
+
+M_aero_trim = [0; 0; 0];
+M_thrust_trim = [0; 0; 0];
