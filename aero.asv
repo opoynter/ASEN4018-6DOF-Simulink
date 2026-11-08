@@ -1,7 +1,0 @@
-function [F_total, M_total] = aero(vel, omega, euler_angles, controls, ...
-    A_lon_SI, A_lat_SI, vel0, F_aero_trim, T_body_trim, mass, g)
-% CALCULATES AERODYNAMIC FORCES AND MOMENTS in continuous loop
-
-%%
-
-end
