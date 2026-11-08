@@ -175,3 +175,31 @@ disp(F_total_trim);
 
 disp('Total Moments at Trim (N*m):');
 disp(M_total_trim);
+
+%% ===== AERO FUNCTION VALIDATION =========================================
+
+controls0 = zeros(3,1);
+
+[F_test, M_test] = aero( ...
+    vel0(:), omega0(:), euler0(:), controls0, ...
+    A_lon_SI, A_lat_SI, vel0(:), ...
+    F_aero_trim, T_body_trim, mass, g);
+
+fprintf('Forces at trim (N):\n');
+disp(F_test);
+
+fprintf('Moments at trim (N*m):\n');
+disp(M_test);
+
+controls_test = [deg2rad(-1); 0; 0];
+
+[F_test, M_test] = aero( ...
+    vel0(:), omega0(:), euler0(:), controls_test, ...
+    A_lon_SI, A_lat_SI, vel0(:), ...
+    F_aero_trim, T_body_trim, mass, g);
+
+disp('Forces with elevator perturbation:');
+disp(F_test);
+
+disp('Moments with elevator perturbation:');
+disp(M_test);

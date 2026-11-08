@@ -4,11 +4,11 @@ function [F_total, M_total] = aero(vel, omega, euler_angles, controls, ...
 % CALCULATES AERODYNAMIC FORCES AND MOMENTS in continuous loop
 
 %% Calculate perts
-dVel = vel - vel0;
+dVel = vel(:) - vel0(:);
 
-dOmega = omega; % assumption that initial angular rates are 0
+dOmega = omega(:); % assumption that initial angular rates are 0
 
-dControls = controls; % assumption that initial controls are 0
+dControls = controls(:); % assumption that initial controls are 0
 
 % Create lat and lon pert vectors
 
@@ -45,4 +45,25 @@ dX_lon(4) = wdot;
 
 dFM_lon = A_lon_SI' * dX_lon;
 
+%% Tabulate and report final FM values
+
+dF_aero = [dFM_lon(1); dFM_lat(1); dFM_lon(2)];
+dM_aero = [dFM_lat(2); dFM_lon(3); dFM_lat(3)];
+
+F_aero = F_aero_trim + dF_aero;
+M_aero = dM_aero; % assuming 0 moment initial condition
+
+% Force from gravity
+F_gravity = mass*g * [
+    -sin(euler_angles(2));
+     sin(euler_angles(1))*cos(euler_angles(2));
+     cos(euler_angles(1))*cos(euler_angles(2))
+];
+
+%Totals
+F_total = F_aero + T_body_trim + F_gravity;
+
+M_total = M_aero;
+
 end
+
