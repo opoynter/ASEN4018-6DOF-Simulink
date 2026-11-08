@@ -41,7 +41,7 @@ wdot = (Z0 + T_body_trim(3) + g_z + ...
 
 %% Update dFM_lon
 
-dFM_lon(4) = wdot;
+dX_lon(4) = wdot;
 
 dFM_lon = A_lon_SI' * dX_lon;
 
